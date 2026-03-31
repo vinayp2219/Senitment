@@ -6,3 +6,8 @@ scikit-learn
 pandas
 numpy
 uvicorn
+fastapi
+wordcloud
+matplotlib
+nltk
+random
