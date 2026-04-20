@@ -170,6 +170,11 @@ body::after{
 .si-item.active-pos .si-name{color:var(--pos);text-shadow:0 0 14px rgba(77,255,160,.6);}
 .si-item.active-neu .si-name{color:var(--neu);text-shadow:0 0 14px rgba(255,217,94,.6);}
 .si-item.active-neg .si-name{color:var(--neg);text-shadow:0 0 14px rgba(255,77,109,.6);}
+.si-item.active-emo .si-dot{animation:dotPulse 1.4s ease-in-out infinite;}
+.si-item.active-emo .si-name{color:var(--accent);text-shadow:0 0 14px rgba(204,136,255,.6);}
+.si-item.active-emo{background:rgba(204,136,255,0.07);border-color:rgba(204,136,255,0.3);box-shadow:0 0 40px rgba(204,136,255,0.1);}
+.si-emotion-emoji{font-size:20px;line-height:1;margin-left:auto;transition:opacity .4s;opacity:0;}
+.si-item.active-emo .si-emotion-emoji{opacity:1;}
 
 /* ── RIGHT PANEL ── */
 .right-panel{padding:60px 64px 60px 48px;display:flex;flex-direction:column;gap:24px;justify-content:center;min-height:calc(100vh - var(--nav-h));}
@@ -363,6 +368,11 @@ textarea:focus{background:rgba(255,255,255,0.04);}
         <div class="si-dot" style="background:var(--neg);box-shadow:0 0 10px var(--neg);"></div>
         <div class="si-name">Negative</div>
       </div>
+      <div class="si-item" id="si-emo">
+        <div class="si-dot" style="background:var(--accent);box-shadow:0 0 10px var(--accent);"></div>
+        <div class="si-name" id="si-emo-name">Emotion</div>
+        <div class="si-emotion-emoji" id="si-emo-emoji"></div>
+      </div>
     </div>
   </div>
 
@@ -447,6 +457,11 @@ textarea:focus{background:rgba(255,255,255,0.04);}
           <div class="result-tag" id="resultTag"></div>
           <div class="result-label" id="resultLabel"></div>
         </div>
+      </div>
+      <div id="resultEmotion" style="display:none;margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(204,136,255,0.06);border:1px solid rgba(204,136,255,0.18);display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(204,136,255,0.7);">Emotion</span>
+        <span id="resultEmotionEmoji" style="font-size:20px;"></span>
+        <span id="resultEmotionLabel" style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#cc88ff;letter-spacing:.1em;"></span>
       </div>
       <p class="result-desc" id="resultDesc"></p>
     </div>
@@ -676,6 +691,10 @@ removeFileBtn.addEventListener('click', () => {
 
 function resetSi(){
   ['pos','neu','neg'].forEach(k => $('si-'+k).className = 'si-item');
+  const emoEl = $('si-emo');
+  emoEl.className = 'si-item';
+  $('si-emo-name').textContent = 'Emotion';
+  $('si-emo-emoji').textContent = '';
 }
 
 analyzeBtn.addEventListener('click', runAnalysis);
@@ -728,7 +747,7 @@ async function runAnalysis(){
 
     $('si-' + wk).classList.add('active-' + wk);
 
-    showResult(s, c);
+    showResult(s, c, data.emotion, data.emotion_emoji);
 
     spawnRipples(s, ox, oy);
     runRippleLoop();
@@ -746,7 +765,7 @@ async function runAnalysis(){
 }
 
 // ── SHOW RESULT CARD ─────────────────────────────────────────────────────────
-function showResult(s, c){
+function showResult(s, c, emotion, emotionEmoji){
   resultWrap.style.cssText = `
     display:block;
     background:rgba(${c.rgb},0.05);
@@ -779,6 +798,24 @@ function showResult(s, c){
   `;
 
   resultDesc.textContent = c.desc;
+
+  // ── Emotion row in result card ──
+  const emoRow = $('resultEmotion');
+  if(emotion){
+    $('resultEmotionEmoji').textContent  = emotionEmoji || '';
+    $('resultEmotionLabel').textContent  = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+    emoRow.style.display = 'flex';
+  } else {
+    emoRow.style.display = 'none';
+  }
+
+  // ── Emotion indicator on left panel ──
+  if(emotion){
+    const emoEl = $('si-emo');
+    emoEl.classList.add('active-emo');
+    $('si-emo-name').textContent  = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+    $('si-emo-emoji').textContent = emotionEmoji || '';
+  }
 }
 </script>
 </body>

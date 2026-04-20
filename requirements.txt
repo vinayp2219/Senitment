@@ -10,3 +10,6 @@ fastapi
 wordcloud
 matplotlib
 nltk
+huggingface_hub
+datasets
+python-multipart
