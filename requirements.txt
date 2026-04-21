@@ -1,11 +1,7 @@
 fastapi
 uvicorn
 transformers
-nltk
-wordcloud
-matplotlib
+torch==2.4.0
+numpy<2
 python-multipart
-numpy
-
---extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.1.2
+nltk
