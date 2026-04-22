@@ -724,7 +724,7 @@ async function runAnalysis(){
     if(text) body.append('text', text);
     if(fileInput.files[0]) body.append('file', fileInput.files[0]);
 
-    const res  = await fetch('https://sentiiment-analysis.netlify.app/predict', { method:'POST', body });
+    const res = await fetch('https://senitment-production-f162.up.railway.app/predict', { method:'POST', body });
     const data = await res.json();
 
     // ── Summary → swipe slide ──
@@ -736,7 +736,7 @@ async function runAnalysis(){
 
     // ── Wordcloud → store for modal ──
     if(data.wordcloud_url){
-      wcImgUrl = 'https://sentiiment-analysis.netlify.app' + data.wordcloud_url;
+      wcImgUrl = 'https://senitment-production-f162.up.railway.app/' + data.wordcloud_url;
     }
 
     const s   = (data.label || 'neutral').toLowerCase();
