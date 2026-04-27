@@ -199,10 +199,10 @@ async def predict(
     return {
         "label": label,
         "scores": {
-            "negative": float(probs[0]),
-            "neutral":  float(probs[1]),
-            "positive": float(probs[2])
-        },
+    "negative": round(float(probs[0]) * 100, 2),
+    "neutral":  round(float(probs[1]) * 100, 2),
+    "positive": round(float(probs[2]) * 100, 2)
+},
         "emotion":       emotion,
         "emotion_emoji": emotion_emoji,
         "summary":       summary,
