@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import torch
 import os
 import nltk
-
+import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.probability import FreqDist
@@ -189,7 +189,14 @@ async def predict(
 
     # --- Sentiment prediction (your trained model) ---
 
-    sentences = sent_tokenize(text)
+
+
+# Split on contrast words like "but", "however"
+    parts = re.split(r'\bbut\b|\bhowever\b|\bthough\b', text.lower())
+    sentences = []
+
+    for part in parts:
+        sentences.extend(sent_tokenize(part))
 
     sentence_labels = []
     all_probs = []
