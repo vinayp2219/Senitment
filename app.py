@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-
+from nltk.tokenize import sent_tokenize
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
 from wordcloud import WordCloud
@@ -130,6 +130,26 @@ def text_summarizer(text, num_sentences=3):
 
     return " ".join([sentences[i] for i, _ in top_sentences])
 
+def predict_single(text):
+    encoded = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        padding=True
+    )
+
+    with torch.no_grad():
+        logits = model(**encoded).logits
+
+    probs = torch.softmax(logits, dim=1).numpy()[0]
+    neg, neu, pos = probs
+
+    if pos > neg and pos > neu:
+        return "positive", probs
+    elif neg > pos and neg > neu:
+        return "negative", probs
+    else:
+        return "neutral", probs
 
 # -----------------------
 # FRONTEND
@@ -168,21 +188,23 @@ async def predict(
         return JSONResponse({"error": "No text found"}, status_code=400)
 
     # --- Sentiment prediction (your trained model) ---
-    encoded = tokenizer(
-        text,
-        return_tensors="pt",
-        truncation=True,
-        padding=True
-    )
 
-    with torch.no_grad():
-        logits = model(**encoded).logits
+    sentences = sent_tokenize(text)
 
-    probs = torch.softmax(logits, dim=1).numpy()[0]
+    sentence_labels = []
+    all_probs = []
 
-    neg, neu, pos = probs
+    for s in sentences:
+        lbl, probs = predict_single(s)
+        sentence_labels.append(lbl)
+        all_probs.append(probs)
 
-    if pos > 0.25 and neg > 0.25:
+# Average probabilities
+    avg_probs = sum(all_probs) / len(all_probs)
+    neg, neu, pos = avg_probs
+
+# Final decision
+    if "positive" in sentence_labels and "negative" in sentence_labels:
         label = "mixed"
     elif pos > neg and pos > neu:
         label = "positive"
@@ -208,9 +230,9 @@ async def predict(
     return {
         "label": label,
         "scores": {
-            "negative": round(float(probs[0]) * 100, 2),
-            "neutral":  round(float(probs[1]) * 100, 2),
-            "positive": round(float(probs[2]) * 100, 2)
+            "negative": round(float(avg_probs[0]) * 100, 2),
+            "neutral":  round(float(avg_probs[1]) * 100, 2),
+            "positive": round(float(avg_probs[2]) * 100, 2)
         },
         "emotion":       emotion,
         "emotion_emoji": emotion_emoji,
