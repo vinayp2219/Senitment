@@ -179,8 +179,17 @@ async def predict(
         logits = model(**encoded).logits
 
     probs = torch.softmax(logits, dim=1).numpy()[0]
-    labels = ["negative", "neutral", "positive"]
-    label = labels[int(probs.argmax())]
+
+    neg, neu, pos = probs
+
+    if pos > 0.25 and neg > 0.25:
+        label = "mixed"
+    elif pos > neg and pos > neu:
+        label = "positive"
+    elif neg > pos and neg > neu:
+        label = "negative"
+    else:
+        label = "neutral"
 
     # --- Emotion prediction (pre-trained model) ---
     # Truncate to 512 chars for the emotion model to avoid token limit issues
@@ -199,10 +208,10 @@ async def predict(
     return {
         "label": label,
         "scores": {
-    "negative": round(float(probs[0]) * 100, 2),
-    "neutral":  round(float(probs[1]) * 100, 2),
-    "positive": round(float(probs[2]) * 100, 2)
-},
+            "negative": round(float(probs[0]) * 100, 2),
+            "neutral":  round(float(probs[1]) * 100, 2),
+            "positive": round(float(probs[2]) * 100, 2)
+        },
         "emotion":       emotion,
         "emotion_emoji": emotion_emoji,
         "summary":       summary,
