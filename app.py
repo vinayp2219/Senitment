@@ -105,7 +105,7 @@ def text_summarizer(text, num_sentences=3):
     sentences = sent_tokenize(text)
 
     if len(sentences) <= num_sentences:
-        return text
+        return " ".join(sentences)  # clean join instead of raw text
 
     words = word_tokenize(text.lower())
     stop_words = set(stopwords.words("english"))
@@ -126,7 +126,10 @@ def text_summarizer(text, num_sentences=3):
 
     sentence_scores = list(enumerate(sentence_scores))
     sorted_sentences = sorted(sentence_scores, key=lambda x: x[1], reverse=True)
-    top_sentences = sorted(sorted_sentences[:num_sentences], key=lambda x: x[0])
+    
+    # Pick top N but cap at half the total sentences so it's always a reduction
+    top_n = min(num_sentences, max(1, len(sentences) // 2))
+    top_sentences = sorted(sorted_sentences[:top_n], key=lambda x: x[0])
 
     return " ".join([sentences[i] for i, _ in top_sentences])
 
